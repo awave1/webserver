@@ -23,30 +23,18 @@ import java.nio.file.Files;
  *
  * @author Artem Golovin
  */
-public class Server implements Runnable {
-    private WebServer server;
-    private Socket client;
+public class Server extends BaseServer {
     private HeaderParser header;
-    private int id;
 
     private URLParser url;
 
     public Server(WebServer server, Socket client, HeaderParser header, int id) {
-        this.server = server;
-        this.client = client;
+        super(server, client, id);
         this.header = header;
-        this.id = id;
     }
 
     @Override
-    public void run() {
-        this.serve();
-    }
-
-    /**
-     * serve() handles main server logic. it processes requests and serves files
-     */
-    private void serve() {
+    protected void serve() {
         int code = 200;
         File file = new File(url.getPath(false));
 
@@ -60,11 +48,11 @@ public class Server implements Runnable {
             String responseHeader = buildResponseHeader(code, file, header);
 
             System.out.println();
-            System.out.println("Response: #" + id);
+            System.out.println("Response: #" + getServerId());
             System.out.println(responseHeader);
 
             String method = header.getMethod();
-            OutputStream toClient =client.getOutputStream();
+            OutputStream toClient = getClient().getOutputStream();
             byte[] headerBytes = responseHeader.getBytes(StandardCharsets.US_ASCII);
 
             if (method.equals("GET")) {
@@ -97,10 +85,7 @@ public class Server implements Runnable {
         }
     }
 
-    /**
-     * connect sets the url (localhost url) and starts server thread
-     * @param url
-     */
+    @Override
     public void connect(URLParser url) {
         this.url = url;
 
@@ -113,7 +98,7 @@ public class Server implements Runnable {
                         "Date: %s\r\n" +
                         "Server: %s\r\n" +
                         "Connection: close\r\n",
-                code, Utils.getCurrentDate(), server.getServerName()
+                code, Utils.getCurrentDate(), getServer().getServerName()
         );
 
         if (code == 200) {

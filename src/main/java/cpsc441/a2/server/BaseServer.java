@@ -6,7 +6,7 @@ import cpsc441.a2.util.URLParser;
 
 import java.net.Socket;
 
-public abstract class BaseServer implements Runnable {
+abstract class BaseServer implements Runnable {
     private WebServer server;
     private Socket client;
     private HeaderParser headerParser;
@@ -18,8 +18,19 @@ public abstract class BaseServer implements Runnable {
         this.serverId = id;
     }
 
-    public abstract void serve();
+    public BaseServer(Socket client) {
+        this.client = client;
+    }
 
+    /**
+     * serve() handles main server logic. it processes requests and serves files
+     */
+    protected abstract void serve();
+
+    /**
+     * connect sets the url (localhost url) and starts server thread
+     * @param url
+     */
     public abstract void connect(URLParser url);
 
     @Override

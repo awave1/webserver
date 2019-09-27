@@ -18,8 +18,7 @@ import java.net.Socket;
  *
  * @author Artem Golovin
  */
-public class ProxyServer implements Runnable {
-    private Socket client;
+public class ProxyServer extends BaseServer {
     private HeaderParser header;
 
     private InputStream fromClient;
@@ -30,13 +29,23 @@ public class ProxyServer implements Runnable {
     private byte[] chunk;
 
     public ProxyServer(Socket client, HeaderParser header) {
-        this.client = client;
+        super(client);
         this.header = header;
 
         // 8KB chunk
         int chunkSize = (int) Math.pow(2, 13);
         this.chunk = new byte[chunkSize];
     }
+
+   @Override
+   protected void serve() {
+       try {
+           toServer.write(header.getHeaderBytes());
+           toServer.flush();
+       } catch (IOException e) {
+           e.printStackTrace();
+       }
+   }
 
     /**
      * Connect to given url and start new thread to handle connection
@@ -48,10 +57,11 @@ public class ProxyServer implements Runnable {
      *
      * @param url target url
      */
+    @Override
     public void connect(URLParser url) {
         try (Socket server = new Socket(url.getHost(), url.getPort())) {
-            fromClient = client.getInputStream();
-            toClient = client.getOutputStream();
+            fromClient = getClient().getInputStream();
+            toClient = getClient().getOutputStream();
             fromServer = server.getInputStream();
             toServer = server.getOutputStream();
 
@@ -64,16 +74,6 @@ public class ProxyServer implements Runnable {
             }
 
             toClient.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void run() {
-        try {
-            toServer.write(header.getHeaderBytes());
-            toServer.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
