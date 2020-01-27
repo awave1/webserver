@@ -21,7 +21,6 @@ import java.net.Socket;
 public class ProxyServer extends BaseServer {
     private HeaderParser header;
 
-    private InputStream fromClient;
     private OutputStream toClient;
     private InputStream fromServer;
     private OutputStream toServer;
@@ -60,7 +59,6 @@ public class ProxyServer extends BaseServer {
     @Override
     public void connect(URLParser url) {
         try (Socket server = new Socket(url.getHost(), url.getPort())) {
-            fromClient = getClient().getInputStream();
             toClient = getClient().getOutputStream();
             fromServer = server.getInputStream();
             toServer = server.getOutputStream();
